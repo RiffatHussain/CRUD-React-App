@@ -1,0 +1,87 @@
+name: Docker Image Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - dev
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Identify which branch triggered the workflow and set IMAGE_TAG
+      - name: Set up environment
+        id: set-env
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          echo "🔍 Detected branch: $BRANCH_NAME"
+
+          if [ "$BRANCH_NAME" = "main" ]; then
+            echo "IMAGE_TAG=prod" >> $GITHUB_ENV
+          elif [ "$BRANCH_NAME" = "staging" ]; then
+            echo "IMAGE_TAG=staging" >> $GITHUB_ENV
+          elif [ "$BRANCH_NAME" = "dev" ]; then
+            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
+          else
+            echo "❌ Unknown branch. Exiting..."
+            exit 1
+          fi
+
+      # Step 2: Checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 3: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 4: Build Docker image and tag based on environment
+      - name: Build Docker Image
+        env:
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: |
+          echo "🏗️ Building Docker image for environment: $IMAGE_TAG"
+          docker build -t $DOCKER_USERNAME/crud-react-app:$IMAGE_TAG .
+
+      # Step 5: Push image to Docker Hub
+      - name: Push Docker Image
+        env:
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: |
+          echo "🚀 Pushing image to Docker Hub..."
+          docker push $DOCKER_USERNAME/crud-react-app:$IMAGE_TAG
+
+      # Step 6: Deploy image on your Ubuntu server
+      - name: Deploy to Ubuntu Server
+        env:
+          PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          HOST_NAME: ${{ secrets.HOST_NAME }}
+          USER_NAME: ${{ secrets.USER_NAME }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key
+          chmod 600 private_key
+
+          echo "🖥️ Deploying $IMAGE_TAG container to $HOST_NAME..."
+
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOST_NAME} "
+            sudo docker pull $DOCKER_USERNAME/crud-react-app:$IMAGE_TAG &&
+            sudo docker stop crud-react-app-$IMAGE_TAG || true &&
+            sudo docker rm crud-react-app-$IMAGE_TAG || true &&
+            # Assign unique ports for each environment
+            if [ '$IMAGE_TAG' = 'prod' ]; then PORT=5000;
+            elif [ '$IMAGE_TAG' = 'staging' ]; then PORT=5001;
+            else PORT=5002; fi &&
+            echo 'Running on port: '$PORT &&
+            sudo docker run -d -p \$PORT:5000 --name crud-react-app-$IMAGE_TAG $DOCKER_USERNAME/crud-react-app:$IMAGE_TAG
+          "

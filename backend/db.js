@@ -4,7 +4,7 @@ import mysql from "mysql2";
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "", // your MySQL password
+  password: "!@#Certa1234", // your MySQL password
   database: "crud_react",
 });
 

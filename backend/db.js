@@ -2,9 +2,9 @@
 import mysql from "mysql2";
 
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "!@#Certa1234", // your MySQL password
+  host: "188.40.68.177",
+  user: "sysadmin",
+  password: "blaze.ws", // your MySQL password
   database: "crud_react",
 });
 

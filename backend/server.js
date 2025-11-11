@@ -25,8 +25,9 @@ app.use("/api/students", studentRoutes);
 app.use(express.static(path.join(__dirname, "public")));
 
 // Catch-all route to serve React index.html
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// ✅ Express 5+ compatible (recommended)
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start server

@@ -2,14 +2,22 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000", // fallback for local dev
+});
+
 const App = () => {
   const [students, setStudents] = useState([]);
   const [form, setForm] = useState({ name: "", email: "", age: "" });
   const [editId, setEditId] = useState(null);
 
   const fetchStudents = async () => {
-    const res = await axios.get("http://localhost:5000/api/students");
-    setStudents(res.data);
+    try {
+      const res = await api.get("/api/students");
+      setStudents(res.data);
+    } catch (error) {
+      console.error("Error fetching students:", error.message);
+    }
   };
 
   useEffect(() => {
@@ -18,14 +26,18 @@ const App = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editId) {
-      await axios.put(`http://localhost:5000/api/students/update/${editId}`, form);
-      setEditId(null);
-    } else {
-      await axios.post("http://localhost:5000/api/students/add", form);
+    try {
+      if (editId) {
+        await api.put(`/api/students/update/${editId}`, form);
+        setEditId(null);
+      } else {
+        await api.post("/api/students/add", form);
+      }
+      setForm({ name: "", email: "", age: "" });
+      fetchStudents();
+    } catch (error) {
+      console.error("Error submitting form:", error.message);
     }
-    setForm({ name: "", email: "", age: "" });
-    fetchStudents();
   };
 
   const handleEdit = (student) => {
@@ -34,8 +46,12 @@ const App = () => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/students/delete/${id}`);
-    fetchStudents();
+    try {
+      await api.delete(`/api/students/delete/${id}`);
+      fetchStudents();
+    } catch (error) {
+      console.error("Error deleting student:", error.message);
+    }
   };
 
   return (

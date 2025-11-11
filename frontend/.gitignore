@@ -7,6 +7,7 @@
 
 #env files
 backend/.env
+frontend/.env
 
 # testing
 /coverage

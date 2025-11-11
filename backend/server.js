@@ -16,7 +16,7 @@ const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, "public")));
 
 // Catch all other routes and return React's index.html
-app.get("*", (req, res) => {
+app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 

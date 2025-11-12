@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000", // fallback for local dev
+  baseURL: "http://192.168.161.128:5000", // fallback for local dev
 });
 
 const App = () => {

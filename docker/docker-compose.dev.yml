@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  app:
+    image: ${DOCKER_USERNAME}/crud-react-app:dev
+    container_name: crud-react-app-dev
+    restart: always
+    ports:
+      - "${APP_PORT}:5000"
+    env_file:
+      - .env.dev
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8
+    container_name: crud-db-dev
+    restart: always
+    env_file:
+      - .env.dev
+    volumes:
+      - dev_db_data:/var/lib/mysql
+    ports:
+      - "3308:3306"
+
+volumes:
+  dev_db_data:

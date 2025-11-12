@@ -8,6 +8,7 @@
 #env files
 backend/.env
 frontend/.env
+docker/.env.dev
 
 # testing
 /coverage

@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  app:
+    image: riffat01/crud-react-app:prod
+    container_name: crud-react-app-prod
+    restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8
+    container_name: crud-db-prod
+    restart: always
+    env_file:
+      - .env.prod
+    volumes:
+      - prod_db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+volumes:
+  prod_db_data:
